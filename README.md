@@ -1,38 +1,69 @@
 This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
-## Getting Started
+## Setup
 
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
+```sh
+yarn
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## サーバーの起動
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+```sh
+yarn dev
+```
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+## 動的ルーティング
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+`[]` で囲むことで動的な値を許容している
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+```text
+/pages/hello/[id]
+-> /hello/hoge
+-> /hello/fuga
+-> /hello/1
+```
 
-## Learn More
+ただし，ネストされた URL を許容するには`[...]`で囲む必要がある
 
-To learn more about Next.js, take a look at the following resources:
+```text
+/pages/nested/[...id]
+-> /nested/hoge
+-> /nested/hoge/fuga
+-> /nested/hoge/2
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+path の取得は以下の様にする
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+ただし，`[]`で囲んだ変数名と合わせること
 
-## Deploy on Vercel
+```ts
+// `/hello/hoge
+const { id } = router.query; // hoge
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+// `nested/hoge/fuga`
+const { id } = router.query; // ['hoge', 'fuga']
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+// ?q=XXX クエリ文字列を含む場合
+const { id, q } = router.query;
+```
+
+## URL の置き換え
+
+`next.config.js` で `rewrite`を定義し
+
+`/hoge/:path*` とアクセスされた場合，`/user/:path*` を表示する設定を追加
+
+```js
+async rewrites() {
+    return [
+      {
+        source: '/hoge/:path*',
+        destination: '/user/:path*',
+      },
+      {
+        source: '/',
+        destination: '/hello/home',
+      },
+    ];
+  },
+```
